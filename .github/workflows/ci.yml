@@ -57,6 +57,13 @@ jobs:
           echo Running User: $(whoami)
           make docker-smoke
 
+  macos-ut:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: build and check
+        run: make macos-ut
+
   deny:
     name: Cargo Deny
     runs-on: ubuntu-latest

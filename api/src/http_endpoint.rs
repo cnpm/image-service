@@ -52,7 +52,7 @@ pub enum ApiError {
     /// Cannot mount a resource
     MountFailure(DaemonErrorKind),
     /// API request send error
-    RequestSend(SendError<ApiRequest>),
+    RequestSend(SendError<Option<ApiRequest>>),
     /// Wrong response payload type
     ResponsePayloadType,
     /// API response receive error

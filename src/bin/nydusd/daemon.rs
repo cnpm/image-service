@@ -15,22 +15,20 @@ use std::path::{Path, PathBuf};
 use std::process::id;
 use std::str::FromStr;
 use std::sync::{
-    atomic::Ordering,
     mpsc::{Receiver, Sender},
     Arc, MutexGuard,
 };
 use std::thread;
 use std::{error, fmt, io};
 
-use event_manager::{EventOps, EventSubscriber, Events};
 use fuse_backend_rs::api::{vfs::VfsError, BackendFileSystem, Vfs};
+#[cfg(target_os = "linux")]
 use fuse_backend_rs::passthrough::{Config, PassthroughFs};
 use fuse_backend_rs::transport::Error as FuseTransportError;
 use fuse_backend_rs::Error as FuseError;
 use rust_fsm::*;
 use serde::{self, Deserialize, Serialize};
 use serde_json::Error as SerdeError;
-use vmm_sys_util::{epoll::EventSet, eventfd::EventFd};
 
 use nydus::{FsBackendDesc, FsBackendType};
 use nydus_app::BuildTimeInfo;
@@ -40,7 +38,6 @@ use rafs::{
 };
 
 use crate::upgrade::{self, UpgradeManager, UpgradeMgrError};
-use crate::EVENT_MANAGER_RUN;
 
 //TODO: Try to public below type from fuse-rs thus no need to redefine it here.
 type BackFileSystem = Box<dyn BackendFileSystem<Inode = u64, Handle = u64> + Send + Sync>;
@@ -390,76 +387,34 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> DaemonResult<BackFileSystem> {
             Ok(Box::new(rafs))
         }
         FsBackendType::PassthroughFs => {
-            // Vfs by default enables no_open and writeback, passthroughfs
-            // needs to specify them explicitly.
-            // TODO(liubo): enable no_open_dir.
-            let fs_cfg = Config {
-                root_dir: cmd.source.to_string(),
-                do_import: false,
-                writeback: true,
-                no_open: true,
-                xattr: true,
-                ..Default::default()
-            };
-            // TODO: Passthrough Fs needs to enlarge rlimit against host. We can exploit `MountCmd`
-            // `config` field to pass such a configuration into here.
-            let passthrough_fs = PassthroughFs::new(fs_cfg).map_err(DaemonError::PassthroughFs)?;
-            passthrough_fs
-                .import()
-                .map_err(DaemonError::PassthroughFs)?;
-            info!("PassthroughFs imported");
-            Ok(Box::new(passthrough_fs))
-        }
-    }
-}
-
-pub struct NydusDaemonSubscriber {
-    event_fd: EventFd,
-}
-
-impl NydusDaemonSubscriber {
-    pub fn new() -> Result<Self> {
-        match EventFd::new(0) {
-            Ok(fd) => Ok(Self { event_fd: fd }),
-            Err(e) => {
-                error!("Creating event fd failed. {}", e);
-                Err(e)
+            #[cfg(target_os = "macos")]
+            return Err(DaemonError::InvalidArguments(String::from(
+                "not support passthroughfs",
+            )));
+            #[cfg(target_os = "linux")]
+            {
+                // Vfs by default enables no_open and writeback, passthroughfs
+                // needs to specify them explicitly.
+                // TODO(liubo): enable no_open_dir.
+                let fs_cfg = Config {
+                    root_dir: cmd.source.to_string(),
+                    do_import: false,
+                    writeback: true,
+                    no_open: true,
+                    xattr: true,
+                    ..Default::default()
+                };
+                // TODO: Passthrough Fs needs to enlarge rlimit against host. We can exploit `MountCmd`
+                // `config` field to pass such a configuration into here.
+                let passthrough_fs =
+                    PassthroughFs::new(fs_cfg).map_err(DaemonError::PassthroughFs)?;
+                passthrough_fs
+                    .import()
+                    .map_err(DaemonError::PassthroughFs)?;
+                info!("PassthroughFs imported");
+                Ok(Box::new(passthrough_fs))
             }
         }
-    }
-
-    pub fn get_event_fd(&self) -> Result<EventFd> {
-        self.event_fd.try_clone()
-    }
-}
-
-impl EventSubscriber for NydusDaemonSubscriber {
-    fn process(&self, events: Events, event_ops: &mut EventOps) {
-        self.event_fd
-            .read()
-            .map(|_| ())
-            .map_err(|e| last_error!(e))
-            .unwrap_or_else(|_| {});
-
-        match events.event_set() {
-            EventSet::IN => {
-                EVENT_MANAGER_RUN.store(false, Ordering::Relaxed);
-            }
-            EventSet::ERROR => {
-                error!("Got error on the monitored event.");
-            }
-            EventSet::HANG_UP => {
-                event_ops
-                    .remove(events)
-                    .unwrap_or_else(|e| error!("Encountered error during cleanup, {}", e));
-            }
-            _ => {}
-        }
-    }
-
-    fn init(&self, ops: &mut EventOps) {
-        ops.add(Events::new(&self.event_fd, EventSet::IN))
-            .expect("Cannot register event")
     }
 }
 
