@@ -265,16 +265,7 @@ version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a89e2ae426ea83155dccf10c0fa6b1463ef6d5fcb44cee0b224a408fa640a62"
 dependencies = [
- "core-foundation-sys 0.8.2",
- "libc",
-]
-
-[[package]]
-name = "core-foundation-sys"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "065a5d7ffdcbc8fa145d6f0746f3555025b9097a9e9cda59f7467abae670c78d"
-dependencies = [
+ "core-foundation-sys",
  "libc",
 ]
 
@@ -371,16 +362,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "diskarbitration-sys"
-version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f82432ae94d42f160b6e17389d6e1c1eee29827b99ad32d35a0a96bb98bedb5"
-dependencies = [
- "core-foundation-sys 0.2.3",
- "libc",
 ]
 
 [[package]]
@@ -508,17 +489,15 @@ dependencies = [
 [[package]]
 name = "fuse-backend-rs"
 version = "0.3.0"
-source = "git+https://github.com/cloud-hypervisor/fuse-backend-rs?rev=765d987642dfea1a5c25691a506b657827320cad#765d987642dfea1a5c25691a506b657827320cad"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff1447465e2b0d1f40830f9cb214b16845d5e06e7e6ac2ad1f1896b17a64d623"
 dependencies = [
- "arc-swap 1.5.0",
+ "arc-swap 0.4.8",
  "bitflags",
  "caps",
- "core-foundation-sys 0.2.3",
- "diskarbitration-sys",
  "lazy_static",
  "libc",
  "log",
- "mio 0.8.0",
  "nix 0.22.2",
  "vhost",
  "virtio-queue",
@@ -1670,7 +1649,7 @@ checksum = "23a2ac85147a3a11d77ecf1bc7166ec0b92febfa4461c37944e180f319ece467"
 dependencies = [
  "bitflags",
  "core-foundation",
- "core-foundation-sys 0.8.2",
+ "core-foundation-sys",
  "libc",
  "security-framework-sys",
 ]
@@ -1681,7 +1660,7 @@ version = "2.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a9dd14d83160b528b7bfd66439110573efcfbe281b17fc2ca9f39f550d619c7e"
 dependencies = [
- "core-foundation-sys 0.8.2",
+ "core-foundation-sys",
  "libc",
 ]
 
