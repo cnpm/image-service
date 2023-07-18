@@ -33,7 +33,7 @@ time = { version = "0.3.14", features = ["formatting"], optional = true }
 tokio = { version = "1.19.0", features = ["macros", "rt", "rt-multi-thread", "sync", "time"] }
 url = { version = "2.1.1", optional = true }
 vm-memory = "0.9"
-fuse-backend-rs = "^0.10.3"
+fuse-backend-rs = { git = "https://github.com/cnpm/fuse-backend-rs.git", branch = "feat/fuse-t" }
 gpt = { version = "3.0.0", optional = true }
 
 nydus-api = { version = "0.3", path = "../api" }
@@ -45,6 +45,7 @@ tar = "0.4.38"
 regex = "1.7.0"
 
 [features]
+fuse-t = [ "fuse-backend-rs/fuse-t" ]
 backend-localdisk = ["gpt"]
 backend-localfs = []
 backend-oss = ["base64", "httpdate", "hmac", "sha1", "reqwest", "url"]

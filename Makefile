@@ -18,7 +18,7 @@ CARGO ?= $(shell which cargo)
 RUSTUP ?= $(shell which rustup)
 CARGO_BUILD_GEARS = -v ~/.ssh/id_rsa:/root/.ssh/id_rsa -v ~/.cargo/git:/root/.cargo/git -v ~/.cargo/registry:/root/.cargo/registry
 SUDO = $(shell which sudo)
-CARGO_COMMON ?= 
+CARGO_COMMON ?=
 
 EXCLUDE_PACKAGES =
 UNAME_M := $(shell uname -m)
@@ -35,6 +35,7 @@ endif
 endif
 ifeq ($(UNAME_S),Darwin)
 	EXCLUDE_PACKAGES += --exclude nydus-blobfs
+	CARGO_COMMON += --features=fuse-t
 ifeq ($(UNAME_M),amd64)
 	STATIC_TARGET = x86_64-apple-darwin
 endif
@@ -129,7 +130,7 @@ coverage: pre-coverage
 # write unit teset coverage to codecov.json, used for Github CI
 coverage-codecov:
 	TEST_WORKDIR_PREFIX=$(TEST_WORKDIR_PREFIX) ${CARGO} llvm-cov --codecov --output-path codecov.json --workspace $(EXCLUDE_PACKAGES) $(CARGO_COMMON) $(CARGO_BUILD_FLAGS) -- --skip integration --nocapture  --test-threads=8
-	
+
 smoke-only:
 	make -C smoke test
 

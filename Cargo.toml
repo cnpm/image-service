@@ -35,7 +35,7 @@ path = "src/lib.rs"
 anyhow = "1"
 clap = { version = "4.0.18", features = ["derive", "cargo"] }
 flexi_logger = { version = "0.25", features = ["compress"] }
-fuse-backend-rs = "^0.10.4"
+fuse-backend-rs = { git = "https://github.com/cnpm/fuse-backend-rs.git", branch = "feat/fuse-t" }
 hex = "0.4.3"
 hyper = "0.14.11"
 hyperlocal = "0.8.0"
@@ -86,6 +86,7 @@ default = [
     "backend-http-proxy",
     "backend-localdisk",
 ]
+fuse-t = [ "fuse-backend-rs/fuse-t" ]
 virtiofs = [
     "nydus-service/virtiofs",
     "vhost",
