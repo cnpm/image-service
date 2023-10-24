@@ -250,6 +250,7 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> Result<BackFileSystem> {
             rafs.import(reader, prefetch_files)?;
 
             // Put a writable upper layer above the rafs to create an OverlayFS with two layers.
+            #[allow(unused_variables)]
             match &config.overlay {
                 Some(ovl_conf) => {
                     // TODO: check workdir and upperdir params.
@@ -257,7 +258,7 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> Result<BackFileSystem> {
                     // Create an overlay upper layer with passthroughfs.
                     #[cfg(target_os = "macos")]
                     return Err(Error::InvalidArguments(String::from(
-                        "not support OverlayFs since passthroughfs isn't supported",
+                        "OverlayFs isn't supported since passthroughfs isn't supported",
                     )));
                     #[cfg(target_os = "linux")]
                     {
