@@ -87,6 +87,9 @@ time = { version = "0.3.14", features = ["formatting"] }
 xattr = "1.0.1"
 vmm-sys-util = "0.11.0"
 
+[patch.crates-io]
+fuse-backend-rs = { git = 'https://github.com/weizhang555/fuse-backend-rs.git', branch = 'overlay-impl' }
+
 [features]
 default = [
     "fuse-backend-rs/fusedev",
