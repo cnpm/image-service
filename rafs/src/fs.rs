@@ -887,7 +887,6 @@ impl FileSystem for Rafs {
     }
 }
 
-#[cfg(target_os = "linux")]
 // Let Rafs works as an OverlayFs layer.
 impl Layer for Rafs {
     fn root_inode(&self) -> Self::Inode {

@@ -13,13 +13,10 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::{Arc, MutexGuard};
 
-#[cfg(target_os = "linux")]
 use fuse_backend_rs::api::filesystem::{FileSystem, FsOptions, Layer};
 use fuse_backend_rs::api::vfs::VfsError;
 use fuse_backend_rs::api::{BackFileSystem, Vfs};
-#[cfg(target_os = "linux")]
 use fuse_backend_rs::overlayfs::{config::Config as overlay_config, OverlayFs};
-#[cfg(target_os = "linux")]
 use fuse_backend_rs::passthrough::{CachePolicy, Config as passthrough_config, PassthroughFs};
 use nydus_api::ConfigV2;
 use nydus_rafs::fs::Rafs;
@@ -256,11 +253,11 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> Result<BackFileSystem> {
                     // TODO: check workdir and upperdir params.
 
                     // Create an overlay upper layer with passthroughfs.
-                    #[cfg(target_os = "macos")]
-                    return Err(Error::InvalidArguments(String::from(
-                        "OverlayFs isn't supported since passthroughfs isn't supported",
-                    )));
-                    #[cfg(target_os = "linux")]
+                    // #[cfg(target_os = "macos")]
+                    // return Err(Error::InvalidArguments(String::from(
+                    //     "OverlayFs isn't supported since passthroughfs isn't supported",
+                    // )));
+                    // #[cfg(target_os = "linux")]
                     {
                         let fs_cfg = passthrough_config {
                             // Use upper_dir as root_dir as rw layer.
@@ -273,9 +270,15 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> Result<BackFileSystem> {
                             cache_policy: CachePolicy::Always,
                             ..Default::default()
                         };
+                        #[cfg(target_os = "linux")]
                         let fsopts = FsOptions::WRITEBACK_CACHE
                             | FsOptions::ZERO_MESSAGE_OPEN
                             | FsOptions::ZERO_MESSAGE_OPENDIR;
+
+                        #[cfg(target_os = "macos")]
+                        let fsopts: FsOptions = FsOptions::ASYNC_READ
+                            | FsOptions::BIG_WRITES
+                            | FsOptions::ATOMIC_O_TRUNC;
 
                         let passthrough_fs = PassthroughFs::<()>::new(fs_cfg)
                             .map_err(|e| Error::InvalidConfig(format!("{}", e)))?;
@@ -318,11 +321,11 @@ fn fs_backend_factory(cmd: &FsBackendMountCmd) -> Result<BackFileSystem> {
             }
         }
         FsBackendType::PassthroughFs => {
-            #[cfg(target_os = "macos")]
-            return Err(Error::InvalidArguments(String::from(
-                "not support passthroughfs",
-            )));
-            #[cfg(target_os = "linux")]
+            // #[cfg(target_os = "macos")]
+            // return Err(Error::InvalidArguments(String::from(
+            //     "not support passthroughfs",
+            // )));
+            // #[cfg(target_os = "linux")]
             {
                 // Vfs by default enables no_open and writeback, passthroughfs
                 // needs to specify them explicitly.
