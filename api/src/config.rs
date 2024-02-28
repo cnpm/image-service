@@ -242,12 +242,47 @@ impl FromStr for ConfigV2 {
                 Err(Error::new(ErrorKind::InvalidInput, "invalid configuration"))
             };
         }
-        if let Ok(v) = serde_json::from_str::<RafsConfig>(s) {
-            if let Ok(v) = ConfigV2::try_from(v) {
-                if v.validate() {
-                    return Ok(v);
-                }
+        // if let Ok(v) = serde_json::from_str::<RafsConfig>(s) {
+        //     if let Ok(v) = ConfigV2::try_from(v) {
+        //         if v.validate() {
+        //             return Ok(v);
+        //         }
+        //     }
+        // }
+        if let Ok(v) = serde_json::from_str::<NewRafsConfig>(s) {
+            // if let Ok(v) = ConfigV2::try_from(v) {
+            //     if v.validate() {
+            //         return Ok(v);
+            //     }
+            // }
+            let o = v.overlay;
+            let v = v.rafs;
+
+            let backend: BackendConfigV2 = (&v.device.backend).try_into()?;
+            let mut cache: CacheConfigV2 = (&v.device.cache).try_into()?;
+            let rafs = RafsConfigV2 {
+                mode: v.mode,
+                user_io_batch_size: v.user_io_batch_size,
+                validate: v.digest_validate,
+                enable_xattr: v.enable_xattr,
+                iostats_files: v.iostats_files,
+                access_pattern: v.access_pattern,
+                latest_read_files: v.latest_read_files,
+                prefetch: v.fs_prefetch.into(),
+            };
+            if !cache.prefetch.enable && rafs.prefetch.enable {
+                cache.prefetch = rafs.prefetch.clone();
             }
+
+            return Ok(ConfigV2 {
+                version: 2,
+                id: v.device.id,
+                backend: Some(backend),
+                cache: Some(cache),
+                rafs: Some(rafs),
+                overlay: o,
+                internal: ConfigV2Internal::default(),
+            });
         }
         Err(Error::new(
             ErrorKind::InvalidInput,
@@ -1343,6 +1378,11 @@ struct FactoryConfig {
     pub cache: CacheConfig,
 }
 
+#[derive(Clone, Default, Deserialize)]
+struct NewRafsConfig {
+    pub rafs: RafsConfig,
+    pub overlay: Option<OverlayConfig>,
+}
 /// Rafs storage backend configuration information.
 #[derive(Clone, Default, Deserialize)]
 struct RafsConfig {
